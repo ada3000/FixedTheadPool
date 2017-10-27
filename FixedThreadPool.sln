@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreadPool.State", "ThreadPool.State\ThreadPool.State.csproj", "{19E62E21-3CAC-43D8-8673-3D088D4452BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreadPool.Lib", "ThreadPool.Lib\ThreadPool.Lib.csproj", "{6F2B5ACB-855F-48AC-88D9-D19B6D1E214B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreadPool.Tests", "ThreadPool.Tests\ThreadPool.Tests.csproj", "{ECBE87EE-31F4-45D2-9E45-D2BD263BAA72}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{19E62E21-3CAC-43D8-8673-3D088D4452BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19E62E21-3CAC-43D8-8673-3D088D4452BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19E62E21-3CAC-43D8-8673-3D088D4452BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19E62E21-3CAC-43D8-8673-3D088D4452BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F2B5ACB-855F-48AC-88D9-D19B6D1E214B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F2B5ACB-855F-48AC-88D9-D19B6D1E214B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F2B5ACB-855F-48AC-88D9-D19B6D1E214B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F2B5ACB-855F-48AC-88D9-D19B6D1E214B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECBE87EE-31F4-45D2-9E45-D2BD263BAA72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECBE87EE-31F4-45D2-9E45-D2BD263BAA72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECBE87EE-31F4-45D2-9E45-D2BD263BAA72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECBE87EE-31F4-45D2-9E45-D2BD263BAA72}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
