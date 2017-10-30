@@ -36,29 +36,28 @@ namespace ThreadPool.Tests
         public void TestStartOrder()
         {
             int maxThreads = 3;
-            string warmUp = new string('n', maxThreads * 2);
-
-            string plannedModes = warmUp + "lhhnhhnl";
-            string expectedModes = warmUp + "hhhnhnll";
+            
+            string plannedPriorities = "lhhnhhnlhnlhnlllhhhnnnhnhnhhlllhhhnnhn";
+            string expectedPriorities = "hhhnhhhnhhhnhhhnhhhnhhnnnnnnnlllllllll";
             
             var pool = new FixedThreadPool(maxThreads);
 
-            StringBuilder actualPriorites = new StringBuilder();
+            StringBuilder actualPriorities = new StringBuilder();
 
-            for (int i = 0; i < plannedModes.Length; i++)
+            for (int i = 0; i < plannedPriorities.Length; i++)
             {
-                var task = new TestTask(i.ToString(), ToPriority(plannedModes[i]), 1000);
-                task.OnStart = (t) => { lock (actualPriorites) actualPriorites.Append(t.Priority.ToString().ToLower()[0]); };
+                var task = new TestTask(i.ToString(), ToPriority(plannedPriorities[i]), 100);
+                task.OnStart = (t) => { lock (actualPriorities) actualPriorities.Append(t.Priority.ToString().ToLower()[0]); };
 
                 pool.Execute(task, task.Priority);
             }
 
-            while (expectedModes.Length > actualPriorites.Length)
+            while (expectedPriorities.Length > actualPriorities.Length)
                 Thread.Sleep(100);
 
-            var actualModesStr = actualPriorites.ToString();
+            var actualPrioritiesStr = actualPriorities.ToString();
 
-            Assert.AreEqual(expectedModes, actualModesStr);
+            Assert.AreEqual(expectedPriorities, actualPrioritiesStr);
         }
 
         private Priority[] ToPriority(string value)

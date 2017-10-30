@@ -26,6 +26,7 @@ namespace ThreadPool.Lib
         private ConcurrentQueue<ITask> _lowQueue = new ConcurrentQueue<ITask>();
 
         private Worker[] _workers;
+        private Thread _taskPlanner;
 
         public FixedThreadPool(int workCount)
         {
@@ -33,6 +34,11 @@ namespace ThreadPool.Lib
                 throw new ArgumentOutOfRangeException(nameof(workCount), "Value must be more then zero.");
 
             _workCount = workCount;
+
+            _taskPlanner = new Thread(PlanTasks);
+            _taskPlanner.IsBackground = true;
+            _taskPlanner.Start();
+
             StartWorkers();
         }
 
@@ -40,22 +46,10 @@ namespace ThreadPool.Lib
         {
             _workers = new Worker[_workCount];
 
-            for(var i=0;i<_workers.Length;i++)
+            for (var i = 0; i < _workers.Length; i++)
             {
                 _workers[i] = new Worker(this);
-                _workers[i].OnTaskDone += FixedThreadPool_OnTaskDone;
-                _workers[i].OnTaskError += FixedThreadPool_OnTaskError;
             }
-        }
-
-        private void FixedThreadPool_OnTaskError(Worker sender, ITask task, Exception error)
-        {
-            PlanTasks();
-        }
-
-        private void FixedThreadPool_OnTaskDone(Worker sender)
-        {
-            PlanTasks();
         }
 
         public bool Execute(ITask task, State.Priority priority)
@@ -70,14 +64,14 @@ namespace ThreadPool.Lib
                 case Priority.High: _highQueue.Enqueue(task); break;
             }
 
-            PlanTasks();
-
             return true;
         }
 
         public void Stop()
         {
             if (!_started) return;
+
+            _taskPlanner.Abort();
 
             _started = false;
             foreach (var worker in _workers)
@@ -86,11 +80,23 @@ namespace ThreadPool.Lib
 
         protected void PlanTasks()
         {
-            if (IsMainQueueFull()) return;
+            while (_started)
+            {
+                if (IsMainQueueFull() || NoTasks())
+                {
+                    Thread.Sleep(100);
+                    continue;
+                };
 
-            if (TryPlanHighPriorityTask()) return;
-            if (TryPlanNormalPriorityTask()) return;
-            if (TryPlanLowPriorityTask()) return;
+                if (TryPlanHighPriorityTask()) continue;
+                if (TryPlanNormalPriorityTask()) continue;
+                TryPlanLowPriorityTask();
+            }
+        }
+
+        private bool NoTasks()
+        {
+            return _lowQueue.Count + _normalQueue.Count + _highQueue.Count == 0;
         }
 
         private bool IsMainQueueFull()
@@ -102,42 +108,35 @@ namespace ThreadPool.Lib
         {
             ITask task;
 
-            if (_highQueue.TryDequeue(out task))
-            {
-                if (_hightPriorityStarted == HightPriorityLimit)
-                {
-                    if (_normalQueue.Count > 0)
-                    {
-                        ITask normalTask;
-                        _normalQueue.TryDequeue(out normalTask);
-                        _mainQueue.Enqueue(normalTask);
-                        Interlocked.Exchange(ref _hightPriorityStarted, 0);
-                    }
-                }
-                else
-                    Interlocked.Increment(ref _hightPriorityStarted);
+            if (!_highQueue.TryDequeue(out task)) return false;
 
-                _mainQueue.Enqueue(task);
-                return true;
+            if (_hightPriorityStarted == HightPriorityLimit && _normalQueue.Count > 0)
+            {
+                ITask normalTask;
+                _normalQueue.TryDequeue(out normalTask);
+                _mainQueue.Enqueue(normalTask);
+                _hightPriorityStarted = 0;
             }
 
-            return false;
+            if (_hightPriorityStarted < HightPriorityLimit)
+                _hightPriorityStarted++;
+
+            _mainQueue.Enqueue(task);
+
+            return true;
         }
 
         private bool TryPlanNormalPriorityTask()
         {
             ITask task;
 
-            if (_normalQueue.TryDequeue(out task))
-            {
-                _mainQueue.Enqueue(task);
-                return true;
-            }
+            if (!_normalQueue.TryDequeue(out task)) return false;
 
-            return false;
+            _mainQueue.Enqueue(task);
+            return true;
         }
 
-        private bool TryPlanLowPriorityTask()
+        private void TryPlanLowPriorityTask()
         {
             ITask task;
 
@@ -147,19 +146,14 @@ namespace ThreadPool.Lib
                 _lowQueue.TryDequeue(out task))
             {
                 _mainQueue.Enqueue(task);
-                return true;
             }
-
-            return false;
         }
 
         public ITask GetNext()
         {
             ITask task;
 
-            if (_mainQueue.TryDequeue(out task)) return task;
-
-            return null;
+            return _mainQueue.TryDequeue(out task) ? task : null;
         }
 
         #region IDisposable Support
